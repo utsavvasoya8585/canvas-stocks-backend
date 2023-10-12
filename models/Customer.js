@@ -37,6 +37,11 @@ const customerSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    verified: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
   },
   {
     timestamps: true,

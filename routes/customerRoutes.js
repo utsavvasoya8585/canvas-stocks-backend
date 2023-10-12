@@ -13,6 +13,7 @@ const {
   updateCustomer,
   deleteCustomer,
   addAllCustomers,
+  verifyEmailAddressTrue,
 } = require("../controller/customerController");
 const {
   passwordVerificationLimit,
@@ -22,8 +23,11 @@ const {
 //verify email
 router.post("/verify-email", emailVerificationLimit, verifyEmailAddress);
 
+// verify-email-true
+router.put("/verify-email-true", verifyEmailAddressTrue)
+
 //register a user
-router.post("/register/:token", registerCustomer);
+router.post("/register", registerCustomer);
 
 //login a user
 router.post("/login", loginCustomer);

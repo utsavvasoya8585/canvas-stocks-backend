@@ -12,34 +12,59 @@ const {
 } = require("../lib/email-sender/templates/forget-password");
 
 const verifyEmailAddress = async (req, res) => {
-  const isAdded = await Customer.findOne({ email: req.body.email });
-  if (isAdded) {
-    return res.status(403).send({
-      message: "This Email already Added!",
-    });
-  } else {
-    const token = tokenForVerify(req.body);
-    const option = {
-      name: req.body.name,
-      email: req.body.email,
-      token: token,
-    };
-    const body = {
-      from: process.env.EMAIL_USER,
-      to: `${req.body.email}`,
-      subject: "Email Activation",
-      subject: "Verify Your Email",
-      html: customerRegisterBody(option),
-    };
+  // const isAdded = await Customer.findOne({ email: req.body.email });
+  // if (isAdded) {
+  //   return res.status(403).send({
+  //     message: "This Email already Added!",
+  //   });
+  // } else {
+  const token = tokenForVerify(req.body);
+  const option = {
+    name: req.body.name,
+    email: req.body.email,
+    token: token,
+  };
+  const body = {
+    from: process.env.EMAIL_USER,
+    to: `${req.body.email}`,
+    subject: "Email Activation",
+    subject: "Verify Your Email",
+    html: customerRegisterBody(option),
+  };
 
-    const message = "Please check your email to verify your account!";
-    sendEmail(body, res, message);
+  const message = "Please check your email to verify your account!";
+  sendEmail(body, res, message);
+  // }
+};
+
+const verifyEmailAddressTrue = async (req, res) => {
+  const token = req.body.token;
+  // console.log(token);
+  const { email } = jwt.decode(req.body.token);
+  const customer = await Customer.findOne({ email: email });
+
+  if (token) {
+    jwt.verify(token, process.env.JWT_SECRET_FOR_VERIFY, (err, decoded) => {
+      if (err) {
+        return res.status(500).send({
+          message: "Token expired, please try again!",
+        });
+      } else {
+        customer.verified = true;
+        customer.save();
+        res.send({
+          message: "Your email address verified Successful, you can login now!",
+          data: customer,
+        });
+      }
+    });
   }
 };
 
 const registerCustomer = async (req, res) => {
-  const token = req.params.token;
-  const { name, email, password } = jwt.decode(token);
+  // const token = req.params.token;
+  // const { name, email, password } = jwt.decode(token);
+  const { name, email, password } = req.body;
   const isAdded = await Customer.findOne({ email: email });
 
   if (isAdded) {
@@ -53,30 +78,46 @@ const registerCustomer = async (req, res) => {
     });
   }
 
-  if (token) {
-    jwt.verify(token, process.env.JWT_SECRET_FOR_VERIFY, (err, decoded) => {
-      if (err) {
-        return res.status(401).send({
-          message: "Token Expired, Please try again!",
-        });
-      } else {
-        const newUser = new Customer({
-          name,
-          email,
-          password: bcrypt.hashSync(password),
-        });
-        newUser.save();
-        const token = signInToken(newUser);
-        res.send({
-          token,
-          _id: newUser._id,
-          name: newUser.name,
-          email: newUser.email,
-          message: "Email Verified, Please Login Now!",
-        });
-      }
-    });
-  }
+  const newUser = new Customer({
+    name,
+    email,
+    password: bcrypt.hashSync(password),
+  });
+  newUser.save();
+  const token = signInToken(newUser);
+  res.send({
+    token,
+    _id: newUser._id,
+    name: newUser.name,
+    email: newUser.email,
+    message: "Email Verified, Please Login Now!",
+  });
+
+
+  // if (token) {
+  //   jwt.verify(token, process.env.JWT_SECRET_FOR_VERIFY, (err, decoded) => {
+  //     if (err) {
+  //       return res.status(401).send({
+  //         message: "Token Expired, Please try again!",
+  //       });
+  //     } else {
+  //       const newUser = new Customer({
+  //         name,
+  //         email,
+  //         password: bcrypt.hashSync(password),
+  //       });
+  //       newUser.save();
+  //       const token = signInToken(newUser);
+  //       res.send({
+  //         token,
+  //         _id: newUser._id,
+  //         name: newUser.name,
+  //         email: newUser.email,
+  //         message: "Email Verified, Please Login Now!",
+  //       });
+  //     }
+  //   });
+  // }
 };
 
 const addAllCustomers = async (req, res) => {
@@ -95,7 +136,7 @@ const addAllCustomers = async (req, res) => {
 
 const loginCustomer = async (req, res) => {
   try {
-    const customer = await Customer.findOne({ email: req.body.registerEmail });
+    const customer = await Customer.findOne({ email: req.body.email });
 
     if (
       customer &&
@@ -111,6 +152,7 @@ const loginCustomer = async (req, res) => {
         address: customer.address,
         phone: customer.phone,
         image: customer.image,
+        verified: customer.verified,
       });
     } else {
       res.status(401).send({
@@ -123,6 +165,7 @@ const loginCustomer = async (req, res) => {
     });
   }
 };
+
 
 const forgetPassword = async (req, res) => {
   const isAdded = await Customer.findOne({ email: req.body.verifyEmail });
@@ -272,6 +315,8 @@ const updateCustomer = async (req, res) => {
       customer.address = req.body.address;
       customer.phone = req.body.phone;
       customer.image = req.body.image;
+      customer.city = req.body.city;
+      customer.country = req.body.country;
       const updatedUser = await customer.save();
       const token = signInToken(updatedUser);
       res.send({
@@ -282,6 +327,8 @@ const updateCustomer = async (req, res) => {
         address: updatedUser.address,
         phone: updatedUser.phone,
         image: updatedUser.image,
+        city: updatedUser.city,
+        country: updatedUser.country,
       });
     }
   } catch (err) {
@@ -318,4 +365,5 @@ module.exports = {
   getCustomerById,
   updateCustomer,
   deleteCustomer,
+  verifyEmailAddressTrue,
 };
