@@ -15,6 +15,7 @@ const attributeRoutes = require("../routes/attributeRoutes");
 const settingRoutes = require("../routes/settingRoutes");
 const currencyRoutes = require("../routes/currencyRoutes");
 const languageRoutes = require("../routes/languageRoutes");
+const razorpayRoutes = require("../routes/razorpayRoutes");
 const { isAuth, isAdmin } = require("../config/auth");
 
 connectDB();
@@ -28,6 +29,8 @@ app.set("trust proxy", 1);
 app.use(express.json({ limit: "4mb" }));
 app.use(helmet());
 app.use(cors());
+// For Razorpay
+app.use(express.urlencoded({extended: true}));
 
 //root route
 app.get("/", (req, res) => {
@@ -44,6 +47,7 @@ app.use("/api/attributes/", attributeRoutes);
 app.use("/api/setting/", settingRoutes);
 app.use("/api/currency/", isAuth, currencyRoutes);
 app.use("/api/language/", languageRoutes);
+app.use("/api/pay/", razorpayRoutes)
 
 //if you not use admin dashboard then these two route will not needed.
 app.use("/api/admin/", adminRoutes);

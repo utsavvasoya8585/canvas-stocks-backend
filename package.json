@@ -30,6 +30,7 @@
     "mongoose": "^5.13.8",
     "mongoose-sequence": "^5.3.1",
     "nodemailer": "^6.7.2",
+    "razorpay": "^2.9.2",
     "socket.io": "^4.4.0",
     "stripe": "^9.14.0",
     "uuid": "^8.3.2"
