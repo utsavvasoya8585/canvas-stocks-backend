@@ -3,6 +3,8 @@ const Razorpay = require('razorpay');
 const Order = require("../models/Order");
 var instance = new Razorpay({ key_id: process.env.RAZORPAY_API_KEY, key_secret: process.env.RAZORPAY_SECRET_KEY });
 const { handleProductQuantity } = require("../lib/stock-controller/others");
+const { sendEmail } = require("../lib/email-sender/sender");
+const customerInvoiceEmailBody = require("../lib/email-sender/templates/order-to-customer");
 
 const checkout = async (req, res) => {
     const options = {
@@ -33,9 +35,46 @@ const paymentVerification = async (req, res) => {
             const newOrder = new Order({
                 ...req.body,
             });
+            // console.log("order placing...")
             const orderData = await newOrder.save();
-            res.status(201).send(orderData);
-            handleProductQuantity(orderData.cart);
+            // res.status(201).send(orderData);
+            // handleProductQuantity(orderData.cart);
+            const option = {
+                name: orderData.user_info.name,
+                email: orderData.user_info.email,
+                phone: orderData.user_info.contact,
+                address: orderData.user_info.address,
+                status: orderData.status,
+                company_name: "Canvas Stocks",
+                company_address: "123, gandhi road, mumbai, maharastra.",
+                company_phone: "+91 12345 67899",
+                company_email: "help.center@canvasStocks.com",
+                company_website: "canvasStocks.com",
+                date: orderData.createdAt,
+                invoice: orderData.invoice,
+                method: orderData.paymentMethod,
+                cart: orderData.cart,
+                currency: "₹",
+                subTotal: orderData.subTotal,
+                shipping: orderData.shippingCost,
+                discount: orderData.discount,
+                total: orderData.total
+            };
+            // console.log(option)
+            // try {
+                const body = {
+                    from: process.env.EMAIL_USER,
+                    to: `${orderData.user_info.email}`,
+                    subject: "Order has been placed.",
+                    html: customerInvoiceEmailBody(option),
+                };
+                // console.log(body);
+            // } catch (error) {
+            //     console.error("Error constructing email body:", error);
+            // }
+
+            const message = "Order has been placed";
+            sendEmail(body, res, message);
         } catch (err) {
             res.status(500).send({
                 message: err.message,

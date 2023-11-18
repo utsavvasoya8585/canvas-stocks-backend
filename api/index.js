@@ -42,7 +42,7 @@ app.use("/api/products/", productRoutes);
 app.use("/api/category/", categoryRoutes);
 app.use("/api/coupon/", couponRoutes);
 app.use("/api/customer/", customerRoutes);
-app.use("/api/order/", isAuth, customerOrderRoutes);
+app.use("/api/order/", customerOrderRoutes);
 app.use("/api/attributes/", attributeRoutes);
 app.use("/api/setting/", settingRoutes);
 app.use("/api/currency/", isAuth, currencyRoutes);

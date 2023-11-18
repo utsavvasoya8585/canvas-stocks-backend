@@ -5,6 +5,7 @@ const {
   getOrderById,
   getOrderCustomer,
   createPaymentIntent,
+  sendMailForUpdateStatus,
 } = require("../controller/customerOrderController");
 
 //add a order
@@ -18,5 +19,8 @@ router.get("/:id", getOrderById);
 
 //get all order by a user
 router.get("/", getOrderCustomer);
+
+// send notification for order updation
+router.get("/notification", sendMailForUpdateStatus);
 
 module.exports = router;

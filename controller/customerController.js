@@ -67,13 +67,14 @@ const registerCustomer = async (req, res) => {
   const { name, email, password } = req.body;
   const isAdded = await Customer.findOne({ email: email });
 
+  console.log("isAdded: ", isAdded);
+
   if (isAdded) {
-    const token = signInToken(isAdded);
     return res.send({
-      token,
       _id: isAdded._id,
       name: isAdded.name,
       email: isAdded.email,
+      verified: isAdded.verified,
       message: "Email Already Verified!",
     });
   }
@@ -317,6 +318,7 @@ const updateCustomer = async (req, res) => {
       customer.image = req.body.image;
       customer.city = req.body.city;
       customer.country = req.body.country;
+      customer.state = req.body.state;
       const updatedUser = await customer.save();
       const token = signInToken(updatedUser);
       res.send({
@@ -329,6 +331,7 @@ const updateCustomer = async (req, res) => {
         image: updatedUser.image,
         city: updatedUser.city,
         country: updatedUser.country,
+        state: updatedUser.state,
       });
     }
   } catch (err) {

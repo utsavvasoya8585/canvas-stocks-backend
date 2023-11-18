@@ -38,6 +38,10 @@ const orderSchema = new mongoose.Schema(
         type: String,
         required: false,
       },
+      state: {
+        type: String,
+        required: false,
+      },
       zipCode: {
         type: String,
         required: false,

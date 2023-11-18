@@ -7,6 +7,8 @@ const Order = require("../models/Order");
 
 const { handleProductQuantity } = require("../lib/stock-controller/others");
 const { formatAmountForStripe } = require("../lib/stripe/stripe");
+const { sendEmail } = require("../lib/email-sender/sender");
+const customerInvoiceEmailBody = require("../lib/email-sender/templates/order-to-customer");
 
 const addOrder = async (req, res) => {
   try {
@@ -76,6 +78,47 @@ const createPaymentIntent = async (req, res) => {
   }
 };
 
+const sendMailForUpdateStatus = async (req, res) => {
+  const { orderData }= req.body;
+  try {
+    const option = {
+      name: orderData.user_info.name,
+      email: orderData.user_info.email,
+      phone: orderData.user_info.contact,
+      address: orderData.user_info.address,
+      status: orderData.status,
+      company_name: "Canvas Stocks",
+      company_address: "123, gandhi road, mumbai, maharastra.",
+      company_phone: "+91 12345 67899",
+      company_email: "help.center@canvasStocks.com",
+      company_website: "canvasStocks.com",
+      date: orderData.createdAt,
+      invoice: orderData.invoice,
+      method: orderData.paymentMethod,
+      cart: orderData.cart,
+      currency: "₹",
+      subTotal: orderData.subTotal,
+      shipping: orderData.shippingCost,
+      discount: orderData.discount,
+      total: orderData.total
+    };
+    // console.log(option)
+    const body = {
+      from: process.env.EMAIL_USER,
+      to: `${orderData.user_info.email}`,
+      subject: "Order Status has been Changed",
+      html: customerInvoiceEmailBody(option),
+    };
+
+    const message = "Order Status has been Changed!";
+    sendEmail(body, res, message);
+  } catch (err) {
+    res.status(500).send({
+      message: err.message,
+    });
+  }
+}
+
 // get all orders user
 const getOrderCustomer = async (req, res) => {
   try {
@@ -85,14 +128,16 @@ const getOrderCustomer = async (req, res) => {
     const limits = Number(limit) || 8;
     const skip = (pages - 1) * limits;
 
-    const totalDoc = await Order.countDocuments({ user: req.user._id });
+
+    const totalDoc = await Order.countDocuments({ user: req.query.uid });
+    // console.log("fetching order for one customer: ", totalDoc)
 
     // total padding order count
     const totalPendingOrder = await Order.aggregate([
       {
         $match: {
           status: "Pending",
-          user: mongoose.Types.ObjectId(req.user._id),
+          user: mongoose.Types.ObjectId(req.query.uid),
         },
       },
       {
@@ -111,7 +156,7 @@ const getOrderCustomer = async (req, res) => {
       {
         $match: {
           status: "Processing",
-          user: mongoose.Types.ObjectId(req.user._id),
+          user: mongoose.Types.ObjectId(req.query.uid),
         },
       },
       {
@@ -129,7 +174,7 @@ const getOrderCustomer = async (req, res) => {
       {
         $match: {
           status: "Delivered",
-          user: mongoose.Types.ObjectId(req.user._id),
+          user: mongoose.Types.ObjectId(req.query.uid),
         },
       },
       {
@@ -146,7 +191,7 @@ const getOrderCustomer = async (req, res) => {
     // today order amount
 
     // query for orders
-    const orders = await Order.find({ user: req.user._id })
+    const orders = await Order.find({ user: req.query.uid })
       .sort({ _id: -1 })
       .skip(skip)
       .limit(limits);
@@ -185,4 +230,5 @@ module.exports = {
   getOrderById,
   getOrderCustomer,
   createPaymentIntent,
+  sendMailForUpdateStatus,
 };

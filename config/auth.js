@@ -10,7 +10,6 @@ const signInToken = (user) => {
       email: user.email,
       address: user.address,
       phone: user.phone,
-      image: user.image,
     },
     process.env.JWT_SECRET,
     {
