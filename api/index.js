@@ -15,6 +15,7 @@ const attributeRoutes = require("../routes/attributeRoutes");
 const settingRoutes = require("../routes/settingRoutes");
 const currencyRoutes = require("../routes/currencyRoutes");
 const languageRoutes = require("../routes/languageRoutes");
+const blogsRoutes = require("../routes/blogsRoutes");
 const razorpayRoutes = require("../routes/razorpayRoutes");
 const { isAuth, isAdmin } = require("../config/auth");
 
@@ -47,6 +48,7 @@ app.use("/api/attributes/", attributeRoutes);
 app.use("/api/setting/", settingRoutes);
 app.use("/api/currency/", isAuth, currencyRoutes);
 app.use("/api/language/", languageRoutes);
+app.use("/api/blogs/", blogsRoutes);
 app.use("/api/pay/", razorpayRoutes)
 
 //if you not use admin dashboard then these two route will not needed.
