@@ -50,6 +50,7 @@ app.use("/api/currency/", isAuth, currencyRoutes);
 app.use("/api/language/", languageRoutes);
 app.use("/api/blogs/", blogsRoutes);
 app.use("/api/pay/", razorpayRoutes)
+app.use("/api/contact", require("../routes/mailer.js"));
 
 //if you not use admin dashboard then these two route will not needed.
 app.use("/api/admin/", adminRoutes);
