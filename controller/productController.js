@@ -297,7 +297,7 @@ const getShowingStoreProducts = async (req, res) => {
       .limit(100);
 
     const relatedProduct = await Product.find({
-      category: products[0]?.category,
+      category: products[0]?.category || {},
     }).populate({ path: "category", select: "_id name" });
 
     res.send({
